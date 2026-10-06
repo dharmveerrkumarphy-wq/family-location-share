@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Share Location</title><style>
+body{font-family:Arial;margin:0;background:#07111f;color:#fff;padding:20px}.card{max-width:430px;margin:40px auto;padding:25px;border-radius:24px;background:#142338;box-shadow:0 20px 60px #0008}button{width:100%;padding:15px;margin:8px 0;border:0;border-radius:12px;font-weight:bold;font-size:16px}.yes{background:#22c55e}.no{background:#ef4444;color:#fff}
+</style></head><body><div class="card"><h1>📍 Location Request</h1>
+<p>This page will share your device location only after you explicitly choose <b>Allow & Share</b>.</p>
+<button class="yes" onclick="share()">Allow & Share Location</button><button class="no" onclick="stop()">Deny / Stop Sharing</button><p id="s"></p></div>
+<script>
+const id=new URLSearchParams(location.search).get("id");
+async function share(){if(!id){s.textContent="Invalid request.";return}
+ if(!navigator.geolocation){s.textContent="GPS is unavailable.";return}
+ s.textContent="Requesting GPS permission…";
+ navigator.geolocation.watchPosition(async p=>{
+   const body={lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy};
+   await fetch("/api/request/"+id+"/location",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+   s.textContent="✅ Location is being shared. You can stop at any time.";
+ },e=>s.textContent="❌ Location permission denied or unavailable.",{enableHighAccuracy:true,maximumAge:5000,timeout:15000})}
+async function stop(){await fetch("/api/request/"+id+"/stop",{method:"POST"});s.textContent="Sharing stopped. No further location will be sent."}
+</script></body></html>
